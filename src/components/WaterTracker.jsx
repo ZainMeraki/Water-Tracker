@@ -1,4 +1,4 @@
-import { useStorage } from '../hooks/useStorage'
+import { useStorage, calcRow, fmt } from '../hooks/useStorage'
 import TrackerRow from './TrackerRow'
 import SummaryCards from './SummaryCards'
 import { exportCSV } from './exportCSV'
@@ -22,12 +22,27 @@ export default function WaterTracker({ dark, setDark }) {
     rows, threshold,
     status, lastSaved,
     addRow, removeRow, updateRow, toggleShower,
+    addLabel, removeLabel, updateLabel, toggleLabelShower,
     updateThreshold,
   } = useStorage()
 
+  const combinedDay = rows.reduce((sum, row) => {
+    return sum + (row.labels || []).reduce((daySum, lbl) => {
+      const { dayUse } = calcRow(lbl)
+      return daySum + (dayUse !== null ? dayUse : 0)
+    }, 0)
+  }, 0)
+
+  const combinedNight = rows.reduce((sum, row) => {
+    return sum + (row.labels || []).reduce((nightSum, lbl) => {
+      const { netNight } = calcRow(lbl)
+      return nightSum + (netNight !== null ? netNight : 0)
+    }, 0)
+  }, 0)
+
   return (
     <div className="p-4 sm:p-6">
-      <div className="max-w-screen-xl mx-auto bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl p-4 sm:p-5">
+      <div className="w-full mx-auto bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-xl p-4 sm:p-5 max-w-full">
 
         {/* Top bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -85,72 +100,74 @@ export default function WaterTracker({ dark, setDark }) {
 
         {/* Table */}
         <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-zinc-700 table-scroll">
-          <table className="w-full text-xs border-collapse" style={{ tableLayout: 'fixed', minWidth: '820px' }}>
+          <table className="w-full text-sm border-collapse" style={{ tableLayout: 'fixed', minWidth: '1240px' }}>
             <colgroup>
-              <col style={{ width: '105px' }} />
-              <col style={{ width: '72px' }} /><col style={{ width: '72px' }} /><col style={{ width: '62px' }} />
-              <col style={{ width: '72px' }} /><col style={{ width: '72px' }} /><col style={{ width: '48px' }} />
-              <col style={{ width: '72px' }} /><col style={{ width: '72px' }} /><col style={{ width: '62px' }} /><col style={{ width: '70px' }} />
-              <col style={{ width: '40px' }} />
+              <col style={{ width: '170px' }} />
+              <col style={{ width: '240px' }} />
+              <col style={{ width: '120px' }} /><col style={{ width: '120px' }} /><col style={{ width: '100px' }} />
+              <col style={{ width: '120px' }} /><col style={{ width: '120px' }} /><col style={{ width: '90px' }} />
+              <col style={{ width: '120px' }} /><col style={{ width: '120px' }} /><col style={{ width: '100px' }} /><col style={{ width: '110px' }} />
+              <col style={{ width: '70px' }} />
             </colgroup>
             <thead>
               <tr className="bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400">
-                <th className="text-left px-2 py-2 font-medium border-b border-gray-200 dark:border-zinc-700" rowSpan={2}>
+                <th className="text-left px-3 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">
                   Date
                 </th>
-                <th
-                  colSpan={3}
-                  className="text-center py-2 font-medium border-b border-gray-200 dark:border-zinc-700 border-r border-gray-200 dark:border-zinc-700"
-                >
-                  Day (awake)
+                <th className="text-left px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">
+                  Label
                 </th>
-                <th
-                  colSpan={5}
-                  className="text-center py-2 font-medium border-b border-gray-200 dark:border-zinc-700 border-r border-gray-200 dark:border-zinc-700"
-                >
-                  Night (asleep)
-                </th>
-                <th
-                  colSpan={2}
-                  className="text-center py-2 font-medium border-b border-gray-200 dark:border-zinc-700 bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400"
-                  rowSpan={1}
-                >
-                  Leak check
-                </th>
-                <th className="border-b border-gray-200 dark:border-zinc-700" rowSpan={2} />
-              </tr>
-              <tr className="bg-gray-50 dark:bg-zinc-800 text-gray-400 dark:text-zinc-500">
-                <th className="text-center px-1 py-1.5 font-medium border-b border-gray-200 dark:border-zinc-700">Start m³</th>
-                <th className="text-center px-1 py-1.5 font-medium border-b border-gray-200 dark:border-zinc-700">End m³</th>
-                <th className="text-center px-1 py-1.5 font-medium border-b border-gray-200 dark:border-zinc-700 border-r border-gray-200 dark:border-zinc-700">Use</th>
-                <th className="text-center px-1 py-1.5 font-medium border-b border-gray-200 dark:border-zinc-700">Start m³</th>
-                <th className="text-center px-1 py-1.5 font-medium border-b border-gray-200 dark:border-zinc-700">End m³</th>
-                <th className="text-center px-1 py-1.5 font-medium border-b border-gray-200 dark:border-zinc-700" title="Shower between 2–4 AM?">Shower?</th>
-                <th className="text-center px-1 py-1.5 font-medium border-b border-gray-200 dark:border-zinc-700">Shwr start</th>
-                <th className="text-center px-1 py-1.5 font-medium border-b border-gray-200 dark:border-zinc-700 border-r border-gray-200 dark:border-zinc-700">Shwr end</th>
-                <th className="text-center px-1 py-1.5 font-medium border-b border-gray-200 dark:border-zinc-700 bg-amber-50 dark:bg-amber-950/40">Shwr m³</th>
-                <th className="text-center px-1 py-1.5 font-medium border-b border-gray-200 dark:border-zinc-700 bg-amber-50 dark:bg-amber-950/40">Net night</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Day start m³</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Day end m³</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Day use</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Night start m³</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Night end m³</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700" title="Shower between 2–4 AM?">Shower?</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Shwr start</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Shwr end</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Shwr m³</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Net night</th>
                 <th className="border-b border-gray-200 dark:border-zinc-700" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="text-center py-8 text-gray-400 dark:text-zinc-500">
+                  <td colSpan={13} className="text-center py-8 text-gray-400 dark:text-zinc-500">
                     No entries yet — click "+ Add day" to start.
                   </td>
                 </tr>
               ) : (
-                rows.map((row) => (
-                  <TrackerRow
-                    key={row.id}
-                    row={row}
-                    threshold={threshold}
-                    onUpdate={updateRow}
-                    onToggleShower={toggleShower}
-                    onRemove={removeRow}
-                  />
-                ))
+                <>
+                  {rows.map((row) => (
+                    <TrackerRow
+                      key={row.id}
+                      row={row}
+                      threshold={threshold}
+                      onUpdate={updateRow}
+                      onToggleShower={toggleShower}
+                      onRemove={removeRow}
+                      addLabel={addLabel}
+                      removeLabel={removeLabel}
+                      updateLabel={updateLabel}
+                      toggleLabelShower={toggleLabelShower}
+                    />
+                  ))}
+                  <tr className="bg-gray-50 dark:bg-zinc-950">
+                    <td className="px-3 py-2 text-sm font-semibold text-gray-700 dark:text-zinc-300" colSpan={2}>Combined totals</td>
+                    <td className="px-1 py-2" />
+                    <td className="px-1 py-2" />
+                    <td className="px-1 py-2 text-center text-sm font-semibold text-gray-900 dark:text-zinc-100">{fmt(combinedDay)}</td>
+                    <td className="px-1 py-2" />
+                    <td className="px-1 py-2" />
+                    <td className="px-1 py-2" />
+                    <td className="px-1 py-2" />
+                    <td className="px-1 py-2" />
+                    <td className="px-1 py-2" />
+                    <td className="px-1 py-2 text-center text-sm font-semibold text-gray-900 dark:text-zinc-100">{fmt(combinedNight)}</td>
+                    <td className="px-1 py-2" />
+                  </tr>
+                </>
               )}
             </tbody>
           </table>

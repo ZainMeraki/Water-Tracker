@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
-const STORAGE_KEY = 'water-tracker-data-v1'
+const STORAGE_KEY = 'water-tracker-data-v2'
 
 export function useStorage() {
   const [rows, setRows] = useState([])
@@ -16,8 +16,20 @@ export function useStorage() {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (raw) {
         const d = JSON.parse(raw)
-        setRows(d.rows || [])
-        setNextId(d.nextId || (d.rows?.length ? Math.max(...d.rows.map(r => r.id)) + 1 : 1))
+        // Support migrating old row shape (flat fields) to new shape with labels
+        const loadedRows = (d.rows || []).map(r => {
+          if (r.labels && Array.isArray(r.labels)) return r
+          // migrate old-style row -> single-label row
+          const lbl = {
+            name: r.label || '',
+            dayStart: r.dayStart ?? '', dayEnd: r.dayEnd ?? '',
+            nightStart: r.nightStart ?? '', nightEnd: r.nightEnd ?? '',
+            shower: r.shower ?? false, showerStart: r.showerStart ?? '', showerEnd: r.showerEnd ?? ''
+          }
+          return { id: r.id, date: r.date ?? '', labels: [lbl] }
+        })
+        setRows(loadedRows)
+        setNextId(d.nextId || (loadedRows?.length ? Math.max(...loadedRows.map(r => r.id)) + 1 : 1))
         setThreshold(d.threshold ?? 0.005)
       } else {
         const firstRow = makeRow(1)
@@ -38,9 +50,9 @@ export function useStorage() {
     saveTimer.current = setTimeout(() => {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
-          rows: newRows,
-          nextId: newNextId,
-          threshold: newThreshold,
+        rows: newRows,
+        nextId: newNextId,
+        threshold: newThreshold,
         }))
         setStatus('saved')
         setLastSaved(new Date())
@@ -91,6 +103,30 @@ export function useStorage() {
     })
   }, [scheduleSave])
 
+  const addLabel = useCallback((rowId) => {
+    updateRows(prev => prev.map(r => r.id === rowId ? { ...r, labels: [...r.labels, makeLabel()] } : r))
+  }, [updateRows])
+
+  const removeLabel = useCallback((rowId, labelIndex) => {
+    updateRows(prev => prev.map(r => r.id === rowId ? { ...r, labels: r.labels.filter((_, i) => i !== labelIndex) } : r))
+  }, [updateRows])
+
+  const updateLabel = useCallback((rowId, labelIndex, field, value) => {
+    updateRows(prev => prev.map(r => {
+      if (r.id !== rowId) return r
+      const labels = r.labels.map((lbl, i) => i === labelIndex ? { ...lbl, [field]: value } : lbl)
+      return { ...r, labels }
+    }))
+  }, [updateRows])
+
+  const toggleLabelShower = useCallback((rowId, labelIndex, checked) => {
+    updateRows(prev => prev.map(r => {
+      if (r.id !== rowId) return r
+      const labels = r.labels.map((lbl, i) => i === labelIndex ? { ...lbl, shower: checked, showerStart: checked ? lbl.showerStart : '', showerEnd: checked ? lbl.showerEnd : '' } : lbl)
+      return { ...r, labels }
+    }))
+  }, [updateRows])
+
   const removeRow = useCallback((id) => {
     updateRows(prev => prev.filter(r => r.id !== id))
   }, [updateRows])
@@ -111,12 +147,17 @@ export function useStorage() {
     rows, nextId, threshold,
     status, lastSaved,
     addRow, removeRow, updateRow, toggleShower,
+    addLabel, removeLabel, updateLabel, toggleLabelShower,
     updateThreshold,
   }
 }
 
+export function makeLabel() {
+  return { name: '', dayStart: '', dayEnd: '', nightStart: '', nightEnd: '', shower: false, showerStart: '', showerEnd: '' }
+}
+
 export function makeRow(id) {
-  return { id, date: '', dayStart: '', dayEnd: '', nightStart: '', nightEnd: '', shower: false, showerStart: '', showerEnd: '' }
+  return { id, date: '', labels: [ makeLabel() ] }
 }
 
 export function calcRow(r) {

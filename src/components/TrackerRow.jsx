@@ -1,151 +1,193 @@
 import { calcRow, fmt } from '../hooks/useStorage'
 
 const inputBase =
-  'w-full text-xs px-1.5 py-1 rounded border border-gray-200 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-700 text-gray-800 dark:text-zinc-100 text-center focus:outline-none focus:border-gray-400 dark:focus:border-zinc-400'
+  'w-full text-sm px-3 py-2 rounded border border-gray-200 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-700 text-gray-800 dark:text-zinc-100 text-left focus:outline-none focus:border-gray-400 dark:focus:border-zinc-400 appearance-none'
 
-export default function TrackerRow({ row, threshold, onUpdate, onToggleShower, onRemove }) {
-  const { dayUse, showerUse, netNight } = calcRow(row)
-  const isLeak = netNight !== null && netNight > threshold
-  const isNeg = dayUse !== null && dayUse < 0
+export default function TrackerRow({ row, threshold, onUpdate, onRemove, addLabel, removeLabel, updateLabel, toggleLabelShower }) {
+  const calcCell = 'px-2 py-2 text-center text-sm'
 
-  const rowBg = row.shower
-    ? 'bg-blue-50/40 dark:bg-blue-950/30'
-    : 'bg-white dark:bg-zinc-900'
-
-  const calcCell = 'px-1 py-1.5 text-center text-xs'
+  const labels = row.labels || []
+  const totalDay = labels.reduce((sum, lbl) => {
+    const { dayUse } = calcRow(lbl)
+    return sum + (dayUse !== null ? dayUse : 0)
+  }, 0)
+  const totalNight = labels.reduce((sum, lbl) => {
+    const { netNight } = calcRow(lbl)
+    return sum + (netNight !== null ? netNight : 0)
+  }, 0)
 
   return (
-    <tr className={`${rowBg} hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors`}>
-      {/* Date */}
-      <td className="px-2 py-1">
-        <input
-          type="date"
-          value={row.date}
-          onChange={(e) => onUpdate(row.id, 'date', e.target.value)}
-          className={inputBase}
-        />
-      </td>
+    <>
+      {labels.map((lbl, i) => {
+        const { dayUse, showerUse, netNight } = calcRow(lbl)
+        const isLeak = netNight !== null && netNight > threshold
+        const isNeg = dayUse !== null && dayUse < 0
+        const rowBg = lbl.shower ? 'bg-blue-50/40 dark:bg-blue-950/30' : 'bg-white dark:bg-zinc-900'
 
-      {/* Day start */}
-      <td className="px-1 py-1">
-        <input
-          type="number"
-          step="0.0001"
-          value={row.dayStart}
-          placeholder="0.0000"
-          onChange={(e) => onUpdate(row.id, 'dayStart', e.target.value)}
-          className={inputBase}
-        />
-      </td>
+        return (
+          <tr key={`${row.id}-${i}`} className={`${rowBg} hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors`}>
+            {i === 0 && (
+              <td className="px-3 py-2" rowSpan={labels.length}>
+                <input
+                  type="date"
+                  value={row.date}
+                  onChange={(e) => onUpdate(row.id, 'date', e.target.value)}
+                  className={`${inputBase} min-w-[160px] max-w-[170px]`}
+                />
+              </td>
+            )}
 
-      {/* Day end */}
-      <td className="px-1 py-1">
-        <input
-          type="number"
-          step="0.0001"
-          value={row.dayEnd}
-          placeholder="0.0000"
-          onChange={(e) => onUpdate(row.id, 'dayEnd', e.target.value)}
-          className={inputBase}
-        />
-      </td>
+            {/* Label name */}
+            <td className="px-3 py-2">
+              <input
+                type="text"
+                value={lbl.name}
+                placeholder="Pipe / room"
+                onChange={(e) => updateLabel(row.id, i, 'name', e.target.value)}
+                className={`${inputBase} min-w-[150px] max-w-[165px]`}
+              />
+            </td>
 
-      {/* Day use (calculated) */}
-      <td className={`${calcCell} ${isNeg ? 'text-red-600 dark:text-red-400 font-medium' : 'text-gray-500 dark:text-zinc-400'}`}>
-        {fmt(dayUse)}
-      </td>
+            {/* Day start */}
+            <td className="px-2 py-2">
+              <input
+                type="number"
+                step="0.0001"
+                value={lbl.dayStart}
+                placeholder="0.0000"
+                onChange={(e) => updateLabel(row.id, i, 'dayStart', e.target.value)}
+                className={`${inputBase} min-w-[110px]`}
+              />
+            </td>
 
-      {/* Night start */}
-      <td className="px-1 py-1">
-        <input
-          type="number"
-          step="0.0001"
-          value={row.nightStart}
-          placeholder="0.0000"
-          onChange={(e) => onUpdate(row.id, 'nightStart', e.target.value)}
-          className={inputBase}
-        />
-      </td>
+            {/* Day end */}
+            <td className="px-2 py-2">
+              <input
+                type="number"
+                step="0.0001"
+                value={lbl.dayEnd}
+                placeholder="0.0000"
+                onChange={(e) => updateLabel(row.id, i, 'dayEnd', e.target.value)}
+                className={`${inputBase} min-w-[110px]`}
+              />
+            </td>
 
-      {/* Night end */}
-      <td className="px-1 py-1">
-        <input
-          type="number"
-          step="0.0001"
-          value={row.nightEnd}
-          placeholder="0.0000"
-          onChange={(e) => onUpdate(row.id, 'nightEnd', e.target.value)}
-          className={inputBase}
-        />
-      </td>
+            {/* Day use (calculated) */}
+            <td className={`${calcCell} ${isNeg ? 'text-red-600 dark:text-red-400 font-medium' : 'text-gray-500 dark:text-zinc-400'}`}>
+              {fmt(dayUse)}
+            </td>
 
-      {/* Shower checkbox */}
-      <td className="px-1 py-1 text-center">
-        <input
-          type="checkbox"
-          checked={row.shower}
-          title="Night shower between 2–4 AM"
-          onChange={(e) => onToggleShower(row.id, e.target.checked)}
-          className="w-3.5 h-3.5 cursor-pointer accent-blue-500"
-        />
-      </td>
+            {/* Night start */}
+            <td className="px-2 py-2">
+              <input
+                type="number"
+                step="0.0001"
+                value={lbl.nightStart}
+                placeholder="0.0000"
+                onChange={(e) => updateLabel(row.id, i, 'nightStart', e.target.value)}
+                className={`${inputBase} min-w-[110px]`}
+              />
+            </td>
 
-      {/* Shower start */}
-      <td className="px-1 py-1">
-        <input
-          type="number"
-          step="0.0001"
-          value={row.showerStart}
-          placeholder="0.0000"
-          disabled={!row.shower}
-          onChange={(e) => onUpdate(row.id, 'showerStart', e.target.value)}
-          className={`${inputBase} disabled:opacity-20 disabled:cursor-not-allowed`}
-        />
-      </td>
+            {/* Night end */}
+            <td className="px-2 py-2">
+              <input
+                type="number"
+                step="0.0001"
+                value={lbl.nightEnd}
+                placeholder="0.0000"
+                onChange={(e) => updateLabel(row.id, i, 'nightEnd', e.target.value)}
+                className={`${inputBase} min-w-[110px]`}
+              />
+            </td>
 
-      {/* Shower end */}
-      <td className="px-1 py-1">
-        <input
-          type="number"
-          step="0.0001"
-          value={row.showerEnd}
-          placeholder="0.0000"
-          disabled={!row.shower}
-          onChange={(e) => onUpdate(row.id, 'showerEnd', e.target.value)}
-          className={`${inputBase} disabled:opacity-20 disabled:cursor-not-allowed`}
-        />
-      </td>
+            {/* Shower checkbox */}
+            <td className="px-1 py-1 text-center">
+              <input
+                type="checkbox"
+                checked={lbl.shower}
+                title="Night shower between 2–4 AM"
+                onChange={(e) => toggleLabelShower(row.id, i, e.target.checked)}
+                className="w-3.5 h-3.5 cursor-pointer accent-blue-500"
+              />
+            </td>
 
-      {/* Shower use (calculated) */}
-      <td className={`${calcCell} text-gray-500 dark:text-zinc-400`}>
-        {row.shower && showerUse !== null ? fmt(showerUse) : '—'}
-      </td>
+            {/* Shower start */}
+            <td className="px-2 py-2">
+              <input
+                type="number"
+                step="0.0001"
+                value={lbl.showerStart}
+                placeholder="0.0000"
+                disabled={!lbl.shower}
+                onChange={(e) => updateLabel(row.id, i, 'showerStart', e.target.value)}
+                className={`${inputBase} disabled:opacity-20 disabled:cursor-not-allowed min-w-[110px]`}
+              />
+            </td>
 
-      {/* Net night (calculated) */}
-      <td
-        className={`${calcCell} font-medium ${
-          isLeak
-            ? 'text-amber-700 dark:text-amber-300'
-            : netNight !== null
-            ? 'text-green-700 dark:text-green-400'
-            : 'text-gray-400 dark:text-zinc-500'
-        }`}
-        title={isLeak ? 'Above leak threshold — possible leak' : ''}
-      >
-        {fmt(netNight)}{isLeak ? ' ⚠' : ''}
-      </td>
+            {/* Shower end */}
+            <td className="px-2 py-2">
+              <input
+                type="number"
+                step="0.0001"
+                value={lbl.showerEnd}
+                placeholder="0.0000"
+                disabled={!lbl.shower}
+                onChange={(e) => updateLabel(row.id, i, 'showerEnd', e.target.value)}
+                className={`${inputBase} disabled:opacity-20 disabled:cursor-not-allowed min-w-[110px]`}
+              />
+            </td>
 
-      {/* Delete */}
-      <td className="px-1 py-1 text-center">
-        <button
-          onClick={() => onRemove(row.id)}
-          title="Delete row"
-          aria-label="Delete row"
-          className="text-xs px-1.5 py-1 rounded border border-red-200 dark:border-red-800 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
-        >
-          ✕
-        </button>
-      </td>
-    </tr>
+            {/* Shower use (calculated) */}
+            <td className={`${calcCell} text-gray-500 dark:text-zinc-400`}>
+              {lbl.shower && showerUse !== null ? fmt(showerUse) : '—'}
+            </td>
+
+            {/* Net night (calculated) */}
+            <td
+              className={`${calcCell} font-medium ${
+                isLeak
+                  ? 'text-amber-700 dark:text-amber-300'
+                  : netNight !== null
+                  ? 'text-green-700 dark:text-green-400'
+                  : 'text-gray-400 dark:text-zinc-500'
+              }`}
+              title={isLeak ? 'Above leak threshold — possible leak' : ''}
+            >
+              {fmt(netNight)}{isLeak ? ' ⚠' : ''}
+            </td>
+
+            {/* Delete */}
+            <td className="px-1 py-1 text-center">
+              {labels.length > 1 ? (
+                <button
+                  onClick={() => removeLabel(row.id, i)}
+                  title="Delete label"
+                  aria-label="Delete label"
+                  className="text-xs px-1.5 py-1 rounded border border-red-200 dark:border-red-800 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                >
+                  ✕
+                </button>
+              ) : (
+                <button
+                  onClick={() => onRemove(row.id)}
+                  title="Delete row"
+                  aria-label="Delete row"
+                  className="text-xs px-1.5 py-1 rounded border border-red-200 dark:border-red-800 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                >
+                  ✕
+                </button>
+              )}
+            </td>
+          </tr>
+        )
+      })}
+      {/* Add label action row */}
+      <tr className="bg-white dark:bg-zinc-900">
+        <td colSpan={12} className="px-2 py-1">
+          <button onClick={() => addLabel(row.id)} className="text-sm px-3 py-1.5 rounded border border-gray-200 dark:border-zinc-600 text-gray-700 dark:text-zinc-300">+ Add label</button>
+        </td>
+      </tr>
+    </>
   )
 }

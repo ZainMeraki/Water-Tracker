@@ -16,3 +16,14 @@
 .dark .table-scroll::-webkit-scrollbar-thumb {
   background: #4b5563;
 }
+
+/* Remove number input spinners and keep keyboard-only entry */
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

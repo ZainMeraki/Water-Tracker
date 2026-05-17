@@ -4,14 +4,16 @@ export default function SummaryCards({ rows, threshold }) {
   let totalDay = 0, totalNight = 0, totalShower = 0, leakDays = 0, validNights = 0
 
   rows.forEach((r) => {
-    const { dayUse, showerUse, netNight } = calcRow(r)
-    if (dayUse !== null && dayUse >= 0) totalDay += dayUse
-    if (netNight !== null) {
-      totalNight += netNight
-      validNights++
-      if (netNight > threshold) leakDays++
-    }
-    if (showerUse !== null) totalShower += showerUse
+    (r.labels || []).forEach(lbl => {
+      const { dayUse, showerUse, netNight } = calcRow(lbl)
+      if (dayUse !== null && dayUse >= 0) totalDay += dayUse
+      if (netNight !== null) {
+        totalNight += netNight
+        validNights++
+        if (netNight > threshold) leakDays++
+      }
+      if (showerUse !== null) totalShower += showerUse
+    })
   })
 
   const cards = [
