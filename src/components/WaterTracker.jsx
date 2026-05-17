@@ -162,7 +162,7 @@ export default function WaterTracker({ dark, setDark }) {
         {/* Footnote */}
         <p className="text-xs text-gray-400 dark:text-zinc-500 mt-4 leading-relaxed">
           Day use = end − start &nbsp;|&nbsp;
-          Shower use = shower end − shower start (2–4 AM) &nbsp;|&nbsp;
+          Shower use = shower end − shower start &nbsp;|&nbsp;
           Net night = (night end − night start) − shower use &nbsp;|&nbsp;
           Data saves automatically to your browser and persists across reloads &nbsp;|&nbsp;
           Export CSV opens in Excel, Numbers, or Google Sheets
