@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom scrollbar for table overflow */
+.table-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+.table-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.table-scroll::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 2px;
+}
+.dark .table-scroll::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
