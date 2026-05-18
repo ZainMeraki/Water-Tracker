@@ -3,8 +3,11 @@ import { calcRow, fmt } from '../hooks/useStorage'
 const inputBase =
   'w-full text-sm px-3 py-2 rounded border border-gray-200 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-700 text-gray-800 dark:text-zinc-100 text-left focus:outline-none focus:border-gray-400 dark:focus:border-zinc-400 appearance-none'
 
-export default function TrackerRow({ row, threshold, onUpdate, onRemove, addLabel, removeLabel, updateLabel, toggleLabelShower }) {
-  const calcCell = 'px-2 py-2 text-center text-sm'
+export default function TrackerRow({ row, threshold, onUpdate, onRemove, addLabel, removeLabel, updateLabel, toggleLabelShower, isLastCombined }) {
+  const cellBorder = 'border-r border-gray-200 dark:border-zinc-700 last:border-r-0'
+  const calcCell = `px-2 py-2 text-center text-sm ${cellBorder}`
+
+  const combinedBorder = !isLastCombined ? 'border-b-[2px] border-gray-300 dark:border-zinc-600' : ''
 
   const labels = row.labels || []
   const totalDay = labels.reduce((sum, lbl) => {
@@ -27,18 +30,25 @@ export default function TrackerRow({ row, threshold, onUpdate, onRemove, addLabe
         return (
           <tr key={`${row.id}-${i}`} className={`${rowBg} hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors`}>
             {i === 0 && (
-              <td className="px-3 py-2" rowSpan={labels.length}>
+              <td className={`px-3 py-2 ${cellBorder}`} rowSpan={labels.length}>
                 <input
                   type="date"
                   value={row.date}
                   onChange={(e) => onUpdate(row.id, 'date', e.target.value)}
                   className={`${inputBase} min-w-[160px] max-w-[170px]`}
                 />
+                <button
+                  type="button"
+                  onClick={() => addLabel(row.id)}
+                  className="mt-3 w-full text-xs px-2 py-1 rounded-lg border border-gray-200 dark:border-zinc-600 text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  + Add label
+                </button>
               </td>
             )}
 
             {/* Label name */}
-            <td className="px-3 py-2">
+            <td className={`px-3 py-2 ${cellBorder}`}>
               <input
                 type="text"
                 value={lbl.name}
@@ -49,7 +59,7 @@ export default function TrackerRow({ row, threshold, onUpdate, onRemove, addLabe
             </td>
 
             {/* Day start */}
-            <td className="px-2 py-2">
+            <td className={`px-2 py-2 ${cellBorder}`}>
               <input
                 type="number"
                 step="0.0001"
@@ -61,7 +71,7 @@ export default function TrackerRow({ row, threshold, onUpdate, onRemove, addLabe
             </td>
 
             {/* Day end */}
-            <td className="px-2 py-2">
+            <td className={`px-2 py-2 ${cellBorder}`}>
               <input
                 type="number"
                 step="0.0001"
@@ -78,7 +88,7 @@ export default function TrackerRow({ row, threshold, onUpdate, onRemove, addLabe
             </td>
 
             {/* Night start */}
-            <td className="px-2 py-2">
+            <td className={`px-2 py-2 ${cellBorder}`}>
               <input
                 type="number"
                 step="0.0001"
@@ -90,7 +100,7 @@ export default function TrackerRow({ row, threshold, onUpdate, onRemove, addLabe
             </td>
 
             {/* Night end */}
-            <td className="px-2 py-2">
+            <td className={`px-2 py-2 ${cellBorder}`}>
               <input
                 type="number"
                 step="0.0001"
@@ -102,7 +112,7 @@ export default function TrackerRow({ row, threshold, onUpdate, onRemove, addLabe
             </td>
 
             {/* Shower checkbox */}
-            <td className="px-1 py-1 text-center">
+            <td className={`px-1 py-1 text-center ${cellBorder}`}>
               <input
                 type="checkbox"
                 checked={lbl.shower}
@@ -113,7 +123,7 @@ export default function TrackerRow({ row, threshold, onUpdate, onRemove, addLabe
             </td>
 
             {/* Shower start */}
-            <td className="px-2 py-2">
+            <td className={`px-2 py-2 ${cellBorder}`}>
               <input
                 type="number"
                 step="0.0001"
@@ -126,7 +136,7 @@ export default function TrackerRow({ row, threshold, onUpdate, onRemove, addLabe
             </td>
 
             {/* Shower end */}
-            <td className="px-2 py-2">
+            <td className={`px-2 py-2 ${cellBorder}`}>
               <input
                 type="number"
                 step="0.0001"
@@ -158,7 +168,7 @@ export default function TrackerRow({ row, threshold, onUpdate, onRemove, addLabe
             </td>
 
             {/* Delete */}
-            <td className="px-1 py-1 text-center">
+            <td className={`px-1 py-1 text-center ${cellBorder}`}>
               {labels.length > 1 ? (
                 <button
                   onClick={() => removeLabel(row.id, i)}
@@ -182,11 +192,25 @@ export default function TrackerRow({ row, threshold, onUpdate, onRemove, addLabe
           </tr>
         )
       })}
-      {/* Add label action row */}
-      <tr className="bg-white dark:bg-zinc-900">
-        <td colSpan={12} className="px-2 py-1">
-          <button onClick={() => addLabel(row.id)} className="text-sm px-3 py-1.5 rounded border border-gray-200 dark:border-zinc-600 text-gray-700 dark:text-zinc-300">+ Add label</button>
+      <tr className="bg-gray-50 dark:bg-zinc-950 border-t-[2px] border-gray-300 dark:border-zinc-600">
+        <td className={`px-3 py-2 text-sm font-semibold text-gray-700 dark:text-zinc-300 ${combinedBorder}`} colSpan={2}>
+          Combined Totals:
         </td>
+        <td className={`px-1 py-2 ${combinedBorder}`} />
+        <td className={`px-1 py-2 ${combinedBorder}`} />
+        <td className={`px-1 py-2 text-center text-sm font-semibold text-gray-900 dark:text-zinc-100 ${combinedBorder}`}>
+          {fmt(totalDay)}
+        </td>
+        <td className={`px-1 py-2 ${combinedBorder}`} />
+        <td className={`px-1 py-2 ${combinedBorder}`} />
+        <td className={`px-1 py-2 ${combinedBorder}`} />
+        <td className={`px-1 py-2 ${combinedBorder}`} />
+        <td className={`px-1 py-2 ${combinedBorder}`} />
+        <td className={`px-1 py-2 ${combinedBorder}`} />
+        <td className={`px-1 py-2 text-center text-sm font-semibold text-gray-900 dark:text-zinc-100 ${combinedBorder}`}>
+          {fmt(totalNight)}
+        </td>
+        <td className={`px-1 py-2 ${combinedBorder}`} />
       </tr>
     </>
   )

@@ -94,7 +94,7 @@ export default function WaterTracker({ dark, setDark }) {
             className="w-24 text-xs px-2 py-1.5 rounded-lg border border-gray-200 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800 text-gray-800 dark:text-zinc-100 focus:outline-none focus:border-gray-400 dark:focus:border-zinc-400"
           />
           <span className="text-xs text-gray-400 dark:text-zinc-500">
-            Net night above this is flagged ⚠
+            Net above this is flagged ⚠
           </span>
         </div>
 
@@ -111,23 +111,31 @@ export default function WaterTracker({ dark, setDark }) {
             </colgroup>
             <thead>
               <tr className="bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400">
-                <th className="text-left px-3 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">
+                <th rowSpan={2} className="text-left px-3 py-3 font-medium border-b border-r border-gray-200 dark:border-zinc-700 last:border-r-0">
                   Date
                 </th>
-                <th className="text-left px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">
+                <th rowSpan={2} className="text-left px-2 py-3 font-medium border-b border-r border-gray-200 dark:border-zinc-700 last:border-r-0">
                   Label
                 </th>
-                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Day start m³</th>
-                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Day end m³</th>
-                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Day use</th>
-                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Night start m³</th>
-                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Night end m³</th>
-                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700" title="Shower between 2–4 AM?">Shower?</th>
-                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Shwr start</th>
-                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Shwr end</th>
-                <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Shwr m³</th>
+                <th colSpan={3} className="text-center px-2 py-3 font-medium border-b border-r border-gray-200 dark:border-zinc-700 last:border-r-0">
+                  Day
+                </th>
+                <th colSpan={7} className="text-center px-2 py-3 font-medium border-b border-r border-gray-200 dark:border-zinc-700 last:border-r-0">
+                  Night
+                </th>
+                <th rowSpan={2} className="border-b border-r border-gray-200 dark:border-zinc-700 last:border-r-0" />
+              </tr>
+              <tr className="bg-gray-50 dark:bg-zinc-800 text-gray-500 dark:text-zinc-400 border-b-2 border-gray-300 dark:border-zinc-600">
+                <th className="text-center px-2 py-3 font-medium border-b border-r border-gray-200 dark:border-zinc-700 last:border-r-0">Start m³</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-r border-gray-200 dark:border-zinc-700 last:border-r-0">End m³</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-r border-gray-200 dark:border-zinc-700 last:border-r-0">Net Day</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-r border-gray-200 dark:border-zinc-700 last:border-r-0">Start m³</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-r border-gray-200 dark:border-zinc-700 last:border-r-0">End m³</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-r border-gray-200 dark:border-zinc-700 last:border-r-0" title="Shower between 2–4 AM?">Shower?</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-r border-gray-200 dark:border-zinc-700 last:border-r-0">Shower start</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-r border-gray-200 dark:border-zinc-700 last:border-r-0">Shower end</th>
+                <th className="text-center px-2 py-3 font-medium border-b border-r border-gray-200 dark:border-zinc-700 last:border-r-0">Shwer m³</th>
                 <th className="text-center px-2 py-3 font-medium border-b border-gray-200 dark:border-zinc-700">Net night</th>
-                <th className="border-b border-gray-200 dark:border-zinc-700" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
@@ -139,7 +147,7 @@ export default function WaterTracker({ dark, setDark }) {
                 </tr>
               ) : (
                 <>
-                  {rows.map((row) => (
+                  {rows.map((row, i) => (
                     <TrackerRow
                       key={row.id}
                       row={row}
@@ -151,22 +159,9 @@ export default function WaterTracker({ dark, setDark }) {
                       removeLabel={removeLabel}
                       updateLabel={updateLabel}
                       toggleLabelShower={toggleLabelShower}
+                      isLastCombined={i === rows.length - 1}
                     />
                   ))}
-                  <tr className="bg-gray-50 dark:bg-zinc-950">
-                    <td className="px-3 py-2 text-sm font-semibold text-gray-700 dark:text-zinc-300" colSpan={2}>Combined totals</td>
-                    <td className="px-1 py-2" />
-                    <td className="px-1 py-2" />
-                    <td className="px-1 py-2 text-center text-sm font-semibold text-gray-900 dark:text-zinc-100">{fmt(combinedDay)}</td>
-                    <td className="px-1 py-2" />
-                    <td className="px-1 py-2" />
-                    <td className="px-1 py-2" />
-                    <td className="px-1 py-2" />
-                    <td className="px-1 py-2" />
-                    <td className="px-1 py-2" />
-                    <td className="px-1 py-2 text-center text-sm font-semibold text-gray-900 dark:text-zinc-100">{fmt(combinedNight)}</td>
-                    <td className="px-1 py-2" />
-                  </tr>
                 </>
               )}
             </tbody>
