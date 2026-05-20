@@ -35,7 +35,7 @@ export default function TrackerRow({ row, threshold, onUpdate, onRemove, addLabe
                   type="date"
                   value={row.date}
                   onChange={(e) => onUpdate(row.id, 'date', e.target.value)}
-                  className={`${inputBase} min-w-[160px] max-w-[170px]`}
+                  className={`${inputBase} min-w-[220px] max-w-[230px]`}
                 />
                 <div className="grid grid-cols-2 gap-2 mt-3 text-xs text-gray-500 dark:text-zinc-400">
                   <label className="space-y-1">

@@ -102,7 +102,7 @@ export default function WaterTracker({ dark, setDark }) {
         <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-zinc-700 table-scroll">
           <table className="w-full text-sm border-collapse" style={{ tableLayout: 'fixed', minWidth: '1240px' }}>
             <colgroup>
-              <col style={{ width: '170px' }} />
+              <col style={{ width: '250px' }} />
               <col style={{ width: '240px' }} />
               <col style={{ width: '120px' }} /><col style={{ width: '120px' }} /><col style={{ width: '100px' }} />
               <col style={{ width: '120px' }} /><col style={{ width: '120px' }} /><col style={{ width: '90px' }} />
