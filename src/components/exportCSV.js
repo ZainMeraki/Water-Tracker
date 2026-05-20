@@ -3,6 +3,10 @@ import { calcRow } from '../hooks/useStorage'
 export function exportCSV(rows, threshold) {
   const headers = [
     'Date',
+    'Day start time',
+    'Day end time',
+    'Night start time',
+    'Night end time',
     'Label',
     'Day start (m³)',
     'Day end (m³)',
@@ -27,6 +31,10 @@ export function exportCSV(rows, threshold) {
       const flag = netNight !== null && netNight > threshold ? 'POSSIBLE LEAK' : ''
       lines.push([
         r.date || '',
+        r.dayStartTime || '',
+        r.dayEndTime || '',
+        r.nightStartTime || '',
+        r.nightEndTime || '',
         lbl.name || '',
         lbl.dayStart || '',
         lbl.dayEnd || '',

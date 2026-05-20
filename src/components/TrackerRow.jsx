@@ -37,6 +37,44 @@ export default function TrackerRow({ row, threshold, onUpdate, onRemove, addLabe
                   onChange={(e) => onUpdate(row.id, 'date', e.target.value)}
                   className={`${inputBase} min-w-[160px] max-w-[170px]`}
                 />
+                <div className="grid grid-cols-2 gap-2 mt-3 text-xs text-gray-500 dark:text-zinc-400">
+                  <label className="space-y-1">
+                    <span className="block">Day start</span>
+                    <input
+                      type="time"
+                      value={row.dayStartTime || ''}
+                      onChange={(e) => onUpdate(row.id, 'dayStartTime', e.target.value)}
+                      className={`${inputBase} py-1`}
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="block">Day end</span>
+                    <input
+                      type="time"
+                      value={row.dayEndTime || ''}
+                      onChange={(e) => onUpdate(row.id, 'dayEndTime', e.target.value)}
+                      className={`${inputBase} py-1`}
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="block">Night start</span>
+                    <input
+                      type="time"
+                      value={row.nightStartTime || ''}
+                      onChange={(e) => onUpdate(row.id, 'nightStartTime', e.target.value)}
+                      className={`${inputBase} py-1`}
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="block">Night end</span>
+                    <input
+                      type="time"
+                      value={row.nightEndTime || ''}
+                      onChange={(e) => onUpdate(row.id, 'nightEndTime', e.target.value)}
+                      className={`${inputBase} py-1`}
+                    />
+                  </label>
+                </div>
                 <button
                   type="button"
                   onClick={() => addLabel(row.id)}

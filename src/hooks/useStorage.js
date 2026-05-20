@@ -18,7 +18,16 @@ export function useStorage() {
         const d = JSON.parse(raw)
         // Support migrating old row shape (flat fields) to new shape with labels
         const loadedRows = (d.rows || []).map(r => {
-          if (r.labels && Array.isArray(r.labels)) return r
+          if (r.labels && Array.isArray(r.labels)) {
+            return {
+              ...r,
+              date: r.date ?? '',
+              dayStartTime: r.dayStartTime ?? '',
+              dayEndTime: r.dayEndTime ?? '',
+              nightStartTime: r.nightStartTime ?? '',
+              nightEndTime: r.nightEndTime ?? '',
+            }
+          }
           // migrate old-style row -> single-label row
           const lbl = {
             name: r.label || '',
@@ -26,7 +35,15 @@ export function useStorage() {
             nightStart: r.nightStart ?? '', nightEnd: r.nightEnd ?? '',
             shower: r.shower ?? false, showerStart: r.showerStart ?? '', showerEnd: r.showerEnd ?? ''
           }
-          return { id: r.id, date: r.date ?? '', labels: [lbl] }
+          return {
+            id: r.id,
+            date: r.date ?? '',
+            dayStartTime: r.dayStartTime ?? '',
+            dayEndTime: r.dayEndTime ?? '',
+            nightStartTime: r.nightStartTime ?? '',
+            nightEndTime: r.nightEndTime ?? '',
+            labels: [lbl],
+          }
         })
         setRows(loadedRows)
         setNextId(d.nextId || (loadedRows?.length ? Math.max(...loadedRows.map(r => r.id)) + 1 : 1))
@@ -157,7 +174,15 @@ export function makeLabel() {
 }
 
 export function makeRow(id) {
-  return { id, date: '', labels: [ makeLabel() ] }
+  return {
+    id,
+    date: '',
+    dayStartTime: '',
+    dayEndTime: '',
+    nightStartTime: '',
+    nightEndTime: '',
+    labels: [ makeLabel() ],
+  }
 }
 
 export function calcRow(r) {
